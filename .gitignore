@@ -23,8 +23,7 @@ build/
 *~
 
 # Project specific
-output/index/
-output/*.json
+output/
 *.log
 
 # OS

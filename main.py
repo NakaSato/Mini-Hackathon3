@@ -115,7 +115,7 @@ def main():
     pipeline = FahMaiRAGPipeline(
         kb_path='data/knowledge_base',
         index_path='output/index',
-        embedding_model='BAAI/bge-m3',
+        embedding_model='Alibaba-NLP/gte-multilingual-base',
         thai_llm_model=args.model,
         top_k=args.top_k,
         use_lightweight=use_lightweight

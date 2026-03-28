@@ -28,19 +28,43 @@ pip install -r requirements.txt
 
 ### 2. Run the Pipeline
 
-```bash
-# Full pipeline with lightweight mode (recommended for speed)
-python main.py --lightweight
+**Local Development (Lightweight Mode - Default)**
 
-# Full pipeline with full ThaiLLM (better accuracy, slower)
+Runs on CPU, no GPU required. Uses cross-encoder for fast answer selection.
+
+```bash
+# Build index and answer questions (lightweight mode)
 python main.py
 
-# Rebuild index
-python main.py --build
+# Or explicitly specify lightweight mode
+python main.py --lightweight
 
 # Test setup
 python main.py --test
 ```
+
+**Cloud/Colab Mode (Full ThaiLLM)**
+
+Runs full ThaiLLM-8B-Instruct model. Requires GPU (16GB+ VRAM recommended).
+
+```bash
+# Full ThaiLLM mode (for cloud/GPU)
+python main.py --cloud
+
+# Or use Google Colab notebook
+# See FahMai_RAG_Colab.ipynb
+```
+
+### 3. Google Colab (Recommended for Full ThaiLLM)
+
+For best performance with full ThaiLLM, use Google Colab:
+
+1. Open [`FahMai_RAG_Colab.ipynb`](FahMai_RAG_Colab.ipynb)
+2. Connect to GPU runtime (Runtime > Change runtime type > GPU)
+3. Run all cells in order
+4. Download submission CSV
+
+**Note:** The Colab notebook is configured for **cloud mode** with full ThaiLLM by default.
 
 ## Project Structure
 
@@ -87,12 +111,30 @@ Options:
   --build       Rebuild the vector index
   --answer      Answer questions only (skip index building)
   --test        Run test with sample data
-  --lightweight Use cross-encoder (faster, less memory)
+  --cloud       Run with full ThaiLLM mode (for Colab/cloud with GPU)
+  --lightweight Use lightweight cross-encoder (faster, less memory)
   --model MODEL ThaiLLM model name (default: KBTG-Labs/ThaiLLM-8B-Instruct)
   --top-k K     Number of documents to retrieve
   --questions PATH  Path to questions CSV
   --output PATH     Path for output submission
+
+Modes:
+  Local (default):  Uses lightweight cross-encoder only (fast, no GPU needed)
+  Cloud (--cloud):  Uses full ThaiLLM-8B-Instruct (requires GPU)
 ```
+
+## Configuration
+
+Create a `.env` file for custom settings (optional):
+
+```bash
+# .env
+LOCAL_RUN_THAI_LLM=false  # Set to true only for local GPU testing
+EMBEDDING_MODEL=BAAI/bge-m3
+TOP_K=5
+```
+
+See `.env.example` for all available options.
 
 ## Pipeline Components
 
@@ -138,20 +180,34 @@ Plus debug info in `output/submission_debug.json`.
 
 ## Performance Tips
 
-1. **Use `--lightweight`** for faster iteration during development
-2. **Increase `--top-k`** for better recall (default: 5)
-3. **Rebuild index** with `--build` if you modify the knowledge base
-4. **GPU recommended** for full ThaiLLM mode (8B model)
+1. **Use Local Mode (default)** for faster iteration during development - no GPU needed
+2. **Use Cloud Mode (`--cloud`)** or Colab for full ThaiLLM accuracy
+3. **Increase `--top-k`** for better recall (default: 5)
+4. **Rebuild index** with `--build` if you modify the knowledge base
+5. **GPU recommended** for full ThaiLLM mode (8B model requires 16GB+ VRAM)
+
+## Running Modes
+
+| Mode | Command | GPU Required | Speed | Accuracy | Use Case |
+|------|---------|--------------|-------|----------|----------|
+| **Local** | `python main.py` | No | Fast (5-10 min) | Good | Development, testing |
+| **Cloud** | `python main.py --cloud` | Yes | Slow (30-60 min) | Best | Final submission |
+| **Colab** | Run notebook | Yes (free) | Slow (30-60 min) | Best | No local GPU needed |
 
 ## Troubleshooting
 
-### Out of Memory
-- Use `--lightweight` mode
+### Out of Memory (Local)
+- Use default lightweight mode (no ThaiLLM loading)
+- Don't use `--cloud` flag on local machine without sufficient GPU memory
 - Reduce batch size in embeddings.py
-- Use CPU mode (slower but works)
+
+### Out of Memory (Colab)
+- Clear GPU cache (run the provided cell in notebook)
+- Use lightweight mode for testing
+- Restart Colab runtime
 
 ### Slow Inference
-- Lightweight mode is 10-100x faster
+- Use lightweight mode (default for local)
 - Pre-build index with `--build`
 - Reduce `--top-k` value
 
@@ -159,6 +215,10 @@ Plus debug info in `output/submission_debug.json`.
 - Ensure UTF-8 encoding
 - Check pythainlp installation
 - Verify embedding model supports Thai
+
+### Model Loading Issues
+- **Local**: ThaiLLM won't load by default (use `--cloud` only on GPU machines)
+- **Colab**: Ensure GPU runtime is selected (Runtime > Change runtime type > GPU)
 
 ## About ThaiLLM
 

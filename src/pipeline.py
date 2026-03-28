@@ -47,10 +47,11 @@ class FahMaiRAGPipeline:
                  top_k: int = 5,
                  chunk_size: int = 500,
                  chunk_overlap: int = 50,
-                 use_lightweight: bool = True):
+                 use_lightweight: bool = True,
+                 cloud_mode: bool = False):
         """
         Initialize the complete pipeline.
-        
+
         Args:
             kb_path: Path to knowledge base
             index_path: Path to save/load vector index
@@ -60,6 +61,7 @@ class FahMaiRAGPipeline:
             chunk_size: Chunk size for preprocessing
             chunk_overlap: Chunk overlap
             use_lightweight: Use lightweight cross-encoder (faster) vs full Thai LLM
+            cloud_mode: Run in cloud/Colab mode with full ThaiLLM (requires GPU)
         """
         self.kb_path = kb_path
         self.index_path = index_path
@@ -68,7 +70,9 @@ class FahMaiRAGPipeline:
         self.top_k = top_k
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.use_lightweight = use_lightweight
+        # Cloud mode overrides lightweight setting
+        self.use_lightweight = use_lightweight or not cloud_mode
+        self.cloud_mode = cloud_mode
         
         # Components (initialized lazily)
         self.embedding_model = None
@@ -328,16 +332,18 @@ class FahMaiRAGPipeline:
 def run_pipeline(build_index: bool = False,
                  questions_path: str = 'data/questions.csv',
                  output_path: str = 'output/submission.csv',
-                 use_lightweight: bool = True) -> pd.DataFrame:
+                 use_lightweight: bool = True,
+                 cloud_mode: bool = False) -> pd.DataFrame:
     """
     Run the complete pipeline.
-    
+
     Args:
         build_index: Rebuild index if True
         questions_path: Path to questions
         output_path: Path for submission
         use_lightweight: Use lightweight cross-encoder (faster)
-    
+        cloud_mode: Run in cloud/Colab mode with full ThaiLLM (requires GPU)
+
     Returns:
         Results DataFrame
     """
@@ -347,7 +353,8 @@ def run_pipeline(build_index: bool = False,
         embedding_model='intfloat/multilingual-e5-large',
         thai_llm_model='KBTG-Labs/ThaiLLM-8B-Instruct',
         top_k=5,
-        use_lightweight=use_lightweight
+        use_lightweight=use_lightweight,
+        cloud_mode=cloud_mode
     )
     
     pipeline.initialize(build_index=build_index)
